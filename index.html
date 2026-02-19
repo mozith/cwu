@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #060608; }
+
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+
+    /* Film grain */
+    .grain {
+      position: fixed; inset: -50%; width: 200%; height: 200%;
+      opacity: 0.016; pointer-events: none; z-index: 2;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      animation: grain 2.4s steps(3) infinite;
+    }
+    @keyframes grain {
+      0%   { transform: translate(0,0); }
+      25%  { transform: translate(-0.4%,-0.3%); }
+      50%  { transform: translate(0.3%, 0.4%); }
+      75%  { transform: translate(-0.2%, 0.2%); }
+      100% { transform: translate(0.2%,-0.3%); }
+    }
+
+    /* Corner brackets */
+    .corner {
+      position: fixed; width: 18px; height: 18px;
+      z-index: 10; opacity: 0;
+      animation: show 0.6s ease forwards;
+    }
+    .corner.tl { top: 28px; left: 28px; border-top: 1px solid rgba(255,255,255,0.22); border-left: 1px solid rgba(255,255,255,0.22); animation-delay: 0.05s; }
+    .corner.tr { top: 28px; right: 28px; border-top: 1px solid rgba(255,255,255,0.22); border-right: 1px solid rgba(255,255,255,0.22); animation-delay: 0.15s; }
+    .corner.bl { bottom: 28px; left: 28px; border-bottom: 1px solid rgba(255,255,255,0.22); border-left: 1px solid rgba(255,255,255,0.22); animation-delay: 0.25s; }
+    .corner.br { bottom: 28px; right: 28px; border-bottom: 1px solid rgba(255,255,255,0.22); border-right: 1px solid rgba(255,255,255,0.22); animation-delay: 0.35s; }
+
+    /* Name — top left, sits beside bracket */
+    .name {
+      position: fixed; top: 30px; left: 54px;
+      font-family: 'Inter', sans-serif; font-weight: 500;
+      font-size: 0.7rem; letter-spacing: 0.26em; text-transform: uppercase;
+      color: rgba(255,255,255,0.82);
+      z-index: 10; opacity: 0;
+      animation: show 0.6s ease 0.55s forwards;
+    }
+
+    /* Work In Progress — centered */
+    .stage {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10;
+    }
+    .wip {
+      font-family: 'Inter', sans-serif; font-weight: 600;
+      font-size: clamp(1.05rem, 2vw, 1.6rem);
+      letter-spacing: 0.32em; text-transform: uppercase;
+      color: rgba(255,255,255,0.94);
+      opacity: 0;
+      animation: show 1s ease 0.9s forwards;
+    }
+
+    @keyframes show {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="grain"></div>
+
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <span class="name">Charlie Wu</span>
+
+  <div class="stage">
+    <span class="wip">Work In Progress</span>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx    = canvas.getContext('2d');
+    let W, H;
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    /* ── Blob definitions ──────────────────────────────────────────────
+       Each blob lives at a corner of the frame and slowly morphs.
+       cx/cy are 0-1 fractions of W/H.
+       r is a fraction of max(W,H).
+       harmonics deform the radius by angle:  r += baseR * amp * sin(freq*θ + t*speed + phase)
+    ─────────────────────────────────────────────────────────────────── */
+    const blobs = [
+      // top-right – largest, dominant
+      { cx: 0.80, cy: 0.18, r: 0.60, rotSpeed:  0.00002, rotation: 0,          breathPhase: 0.0,
+        harmonics: [
+          { freq: 2, amp: 0.06, speed: 0.00010, phase: 0.00 },
+          { freq: 3, amp: 0.04, speed: 0.00008, phase: 1.20 },
+        ]},
+      // bottom-left – medium
+      { cx: 0.18, cy: 0.86, r: 0.54, rotSpeed: -0.00002, rotation: Math.PI,    breathPhase: 2.1,
+        harmonics: [
+          { freq: 2, amp: 0.06, speed: 0.00009, phase: 0.80 },
+          { freq: 4, amp: 0.035, speed: 0.00014, phase: 2.50 },
+        ]},
+      // top-left – smaller
+      { cx: 0.14, cy: 0.16, r: 0.42, rotSpeed:  0.00002, rotation: 1.0,        breathPhase: 4.2,
+        harmonics: [
+          { freq: 3, amp: 0.05, speed: 0.00012, phase: 1.50 },
+        ]},
+      // bottom-right – medium-small
+      { cx: 0.86, cy: 0.88, r: 0.48, rotSpeed: -0.00002, rotation: 2.2,        breathPhase: 1.5,
+        harmonics: [
+          { freq: 2, amp: 0.06, speed: 0.00011, phase: 2.10 },
+          { freq: 4, amp: 0.035, speed: 0.00016, phase: 0.40 },
+        ]},
+    ];
+
+    const DOT_SPACING = 13; // px between dot centres (more open, calmer)
+
+    /* Sample the combined blob brightness at a canvas point */
+    function sample(px, py, t) {
+      let brightness = 0;
+
+      for (const blob of blobs) {
+        const bx   = blob.cx * W;
+        const by   = blob.cy * H;
+        const dx   = px - bx;
+        const dy   = py - by;
+        const d2   = dx * dx + dy * dy;
+        const maxR = blob.r * (1 + 0.018 * Math.sin(t * 0.0004 + blob.breathPhase)) * Math.max(W, H);
+
+        // Cheap cull before expensive trig
+        if (d2 > maxR * maxR * 4.2) continue;
+
+        const dist  = Math.sqrt(d2);
+        const angle = Math.atan2(dy, dx) - blob.rotation;
+
+        let pertR = maxR;
+        for (const h of blob.harmonics) {
+          pertR += maxR * h.amp * Math.sin(h.freq * angle + t * h.speed * 1000 + h.phase);
+        }
+
+        const edge = maxR * 0.40;
+        const b    = Math.max(0, Math.min(1, (pertR - dist) / edge));
+        brightness += b * 0.55;
+      }
+
+      return Math.max(0, Math.min(1, brightness));
+    }
+
+    let t = 0;
+
+    function draw() {
+      // Advance blob rotations
+      for (const blob of blobs) blob.rotation += blob.rotSpeed;
+
+      // Black canvas
+      ctx.fillStyle = '#060608';
+      ctx.fillRect(0, 0, W, H);
+
+      // ── Halftone dot pass ───────────────────────────────────────────
+      // Single batched path: all dots share one fillStyle for GPU efficiency
+      ctx.fillStyle = 'rgba(185, 183, 200, 0.68)';
+      ctx.beginPath();
+
+      const half = DOT_SPACING / 2;
+      for (let py = half; py < H; py += DOT_SPACING) {
+        for (let px = half; px < W; px += DOT_SPACING) {
+          const b = sample(px, py, t);
+          if (b < 0.012) continue;
+          const r = b * DOT_SPACING * 0.47;
+          ctx.moveTo(px + r, py);          // moveTo avoids implicit lineTo
+          ctx.arc(px, py, r, 0, 6.2832);
+        }
+      }
+      ctx.fill();
+      // ────────────────────────────────────────────────────────────────
+
+      // Soft center darkening so the text stays crisp on black
+      const cg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.min(W, H) * 0.24);
+      cg.addColorStop(0, 'rgba(6,6,8,0.98)');
+      cg.addColorStop(1, 'rgba(6,6,8,0.01)');
+      ctx.fillStyle = cg;
+      ctx.fillRect(0, 0, W, H);
+
+      t += 0.20;
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>
