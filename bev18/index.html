@@ -2,8 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bev — Birthday</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>for you</title>
+    <meta property="og:title" content="for you">
+    <meta property="og:description" content="happy birthday, bev">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cwu.to/bev18">
+    <meta name="theme-color" content="#0d0810">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,7 +30,8 @@
       .petals-layer{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1}
       .center-glow{position:absolute;top:50%;left:50%;width:min(520px,80vw);height:min(520px,80vw);transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(220,140,165,0.28) 0%,rgba(196,116,138,0.18) 20%,rgba(196,116,138,0.08) 45%,rgba(196,116,138,0.03) 65%,transparent 85%);filter:blur(10px);z-index:2;pointer-events:none;animation:glow-pulse 3s ease-in-out infinite alternate}
       @keyframes glow-pulse{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(1.06)}}
-      .landing-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:28px;text-align:center}
+      .landing-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:28px;text-align:center;animation:landing-fade-in 1.2s ease both}
+      @keyframes landing-fade-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
       .prompt{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:28px;letter-spacing:0.15em;text-transform:lowercase;color:rgba(255,255,255,0.85)}
       .birthday-form{display:flex;flex-direction:column;align-items:center;gap:24px}
       .drums-row{display:flex;align-items:center;gap:clamp(6px,2vw,14px)}
@@ -96,7 +102,7 @@
       @keyframes gift-reveal-entrance{to{opacity:1;transform:scale(1) translateY(0)}}
       .gift-reveal-name{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:22px;color:rgba(255,255,255,0.9);margin-top:20px;opacity:0;z-index:1;position:relative;text-align:center;letter-spacing:0.05em}
       .gift-reveal.visible .gift-reveal-name{animation:gift-reveal-entrance 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s forwards}
-      .gift-reveal-tap{position:absolute;bottom:60px;font-family:"Cormorant Garamond",serif;font-style:italic;font-size:14px;color:rgba(255,255,255,0.6);opacity:0;transition:opacity 0.5s}
+      .gift-reveal-tap{position:absolute;bottom:60px;font-family:"Cormorant Garamond",serif;font-style:italic;font-size:14px;color:rgba(255,255,255,0.6);opacity:0;transition:opacity 0.5s;letter-spacing:0.12em;text-transform:lowercase}
       .gift-reveal-tap.visible{opacity:1}
       .confetti-piece{position:fixed;z-index:430;pointer-events:none;animation:confetti-fly var(--conf-dur,1.8s) ease-out forwards}
       @keyframes confetti-fly{0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(var(--conf-x,40px),var(--conf-y,-120px)) rotate(var(--conf-r,360deg)) scale(0.3)}}
@@ -130,6 +136,7 @@
       .scene-hint{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);font-family:"Cormorant Garamond",serif;font-style:italic;font-size:24px;color:rgba(255,255,255,0.95);text-shadow:0 2px 20px rgba(0,0,0,0.7);pointer-events:none;opacity:0;z-index:15;transition:opacity 0.8s;white-space:nowrap}
       .scene-hint.visible{opacity:1}
       .gallery-section{position:relative;background:linear-gradient(180deg,#fce8ef 0%,#f5d5e0 100%);padding:60px 24px 80px;min-height:100vh;z-index:11}
+      .gallery-section::before{content:'';position:absolute;top:-60px;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,#fce8ef);pointer-events:none;z-index:12}
       .gallery-title{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:38px;color:#1a2f52;text-align:center;margin-bottom:12px}
       .gallery-rule{width:40px;height:1px;background:#f4a7b9;margin:0 auto 48px}
       .gallery-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;max-width:1000px;margin:0 auto}
@@ -175,7 +182,7 @@
     </div>
 
     <button class="envelope-trigger" id="envelope-trigger"><span class="envelope-icon">&#9993;</span></button>
-    <p class="scene-hint" id="scene-hint">click the gifts to guess what's inside</p>
+    <p class="scene-hint" id="scene-hint">tap a gift to guess what's inside</p>
     <div class="scroll-hint" id="scroll-hint">&#8964;</div>
 
     <div class="gift-reveal" id="gift-reveal"><div class="gift-reveal-glow"></div><img id="gift-reveal-img" src="" alt="Gift"/><p class="gift-reveal-name" id="gift-reveal-name"></p><p class="gift-reveal-tap" id="gift-reveal-tap">tap anywhere to continue</p></div>
@@ -183,7 +190,7 @@
     <div class="guess-overlay" id="guess-overlay"><div class="guess-card">
       <button class="guess-close" id="guess-close">&times;</button>
       <div class="guess-card-line"></div><p class="guess-title">what's inside?</p><p class="guess-hint">type your guess...</p>
-      <input type="text" class="guess-input" id="guess-input" autocomplete="off" spellcheck="false"/>
+      <input type="text" class="guess-input" id="guess-input" autocomplete="off" spellcheck="false" placeholder="..."/>
       <button class="guess-btn" id="guess-btn">reveal</button><p class="guess-error" id="guess-error">not quite... try again</p>
     </div></div>
 
@@ -303,7 +310,7 @@ Happy birthday, Bev. I love you.</p>
         await app.load('https://prod.spline.design/SVygeioOYpAys4mn/scene.splinecode');
         console.log('[Spline] Loaded!');
         if(window.innerWidth<=768){try{app.pixelRatio=1}catch(e){}}
-        const loader=document.getElementById('spline-loader');if(loader)loader.style.display='none';
+        const loader=document.getElementById('spline-loader');if(loader){loader.style.transition='opacity 0.6s ease';loader.style.opacity='0';setTimeout(()=>loader.style.display='none',600)}
 
         const letterContent = {
           'letter-h': "Here's something I love about you...",
