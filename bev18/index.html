@@ -136,7 +136,6 @@
       .scene-hint{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);font-family:"Cormorant Garamond",serif;font-style:italic;font-size:24px;color:rgba(255,255,255,0.95);text-shadow:0 2px 20px rgba(0,0,0,0.7);pointer-events:none;opacity:0;z-index:15;transition:opacity 0.8s;white-space:nowrap}
       .scene-hint.visible{opacity:1}
       .gallery-section{position:relative;background:linear-gradient(180deg,#fce8ef 0%,#f5d5e0 100%);padding:60px 24px 80px;min-height:100vh;z-index:11}
-      .gallery-section::before{content:'';position:absolute;top:-60px;left:0;right:0;height:60px;background:linear-gradient(to bottom,transparent,#fce8ef);pointer-events:none;z-index:12}
       .gallery-title{font-family:"Cormorant Garamond",serif;font-style:italic;font-size:38px;color:#1a2f52;text-align:center;margin-bottom:12px}
       .gallery-rule{width:40px;height:1px;background:#f4a7b9;margin:0 auto 48px}
       .gallery-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;max-width:1000px;margin:0 auto}
@@ -249,7 +248,7 @@ Happy birthday, Bev. I love you.</p>
         setTimeout(()=>sceneHint.classList.add('visible'),3500);
         setTimeout(()=>sceneHint.classList.remove('visible'),14000);
         setTimeout(()=>scrollHint.classList.add('visible'),4000);
-        let sh=false;const splineCanvas=document.getElementById('spline-canvas');let canvasDisabled=false;window.addEventListener('scroll',()=>{if(!sh&&window.scrollY>50){scrollHint.classList.remove('visible');sh=true}const threshold=window.innerHeight*0.3;if(window.scrollY>threshold&&!canvasDisabled){splineCanvas.style.pointerEvents='none';canvasDisabled=true}else if(window.scrollY<=threshold&&canvasDisabled){if(document.querySelector('.main-scene.visible'))splineCanvas.style.pointerEvents='auto';canvasDisabled=false}},{passive:true})};
+        let sh=false;const splineCanvas=document.getElementById('spline-canvas');let canvasDisabled=false;window.addEventListener('scroll',()=>{if(!sh&&window.scrollY>50){scrollHint.classList.remove('visible');sh=true}const threshold=10;if(window.scrollY>threshold&&!canvasDisabled){splineCanvas.style.pointerEvents='none';canvasDisabled=true}else if(window.scrollY<=threshold&&canvasDisabled){if(document.querySelector('.main-scene.visible'))splineCanvas.style.pointerEvents='auto';canvasDisabled=false}},{passive:true})};
 
       /* ===== LETTER CARD (plain div, not dialog) ===== */
       const letterCard=document.getElementById('letter-card'),cardText=document.getElementById('letter-card-text'),cardClose=document.getElementById('letter-card-close');
@@ -310,6 +309,7 @@ Happy birthday, Bev. I love you.</p>
         await app.load('https://prod.spline.design/SVygeioOYpAys4mn/scene.splinecode');
         console.log('[Spline] Loaded!');
         if(window.innerWidth<=768){try{app.pixelRatio=1}catch(e){}}
+        canvas.addEventListener('wheel',e=>{e.stopPropagation()},{capture:true});
         const loader=document.getElementById('spline-loader');if(loader){loader.style.transition='opacity 0.6s ease';loader.style.opacity='0';setTimeout(()=>loader.style.display='none',600)}
 
         const letterContent = {
