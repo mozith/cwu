@@ -2,18 +2,320 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>cwu</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <meta property="og:title" content="charlie wu">
+  <meta property="og:description" content="creative developer">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cwu.to">
+  <meta name="theme-color" content="#050505">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://unpkg.com/@splinetool/runtime/build/runtime.js" as="script" crossorigin>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: system-ui, -apple-system, sans-serif; gap: 12px; }
-    h1 { color: rgba(255,255,255,0.12); font-size: 64px; letter-spacing: 0.4em; text-transform: lowercase; font-weight: 300; }
-    .tagline { color: rgba(255,255,255,0.08); font-size: 12px; letter-spacing: 0.3em; text-transform: lowercase; }
+    :root {
+      --bg: #050505;
+      --text-bright: rgba(255,255,255,0.85);
+      --text-dim: rgba(255,255,255,0.25);
+      --text-muted: rgba(255,255,255,0.12);
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: var(--bg);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .spline-bg {
+      position: fixed; inset: 0; z-index: 1;
+      opacity: 0;
+      transition: opacity 2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .spline-bg.loaded { opacity: 1; }
+    .spline-bg canvas { width: 100%; height: 100%; }
+
+    .grain {
+      position: fixed; inset: -50%; z-index: 5;
+      width: 200%; height: 200%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      animation: grain-drift 8s steps(10) infinite;
+    }
+    @keyframes grain-drift {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-5%, -10%); }
+      30% { transform: translate(3%, -15%); }
+      50% { transform: translate(12%, 9%); }
+      70% { transform: translate(9%, 4%); }
+      90% { transform: translate(-1%, 7%); }
+    }
+
+    .vignette {
+      position: fixed; inset: 0; z-index: 4;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(5,5,5,0.6) 100%);
+      pointer-events: none;
+    }
+
+    .corner {
+      position: fixed; z-index: 10;
+      width: 20px; height: 20px;
+      opacity: 0;
+      animation: fade-in 1s ease 1.5s forwards;
+    }
+    .corner-tl { top: clamp(24px,4vw,48px); left: clamp(24px,4vw,48px); border-top: 1px solid rgba(255,255,255,0.06); border-left: 1px solid rgba(255,255,255,0.06); }
+    .corner-tr { top: clamp(24px,4vw,48px); right: clamp(24px,4vw,48px); border-top: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06); }
+    .corner-bl { bottom: clamp(24px,4vw,48px); left: clamp(24px,4vw,48px); border-bottom: 1px solid rgba(255,255,255,0.06); border-left: 1px solid rgba(255,255,255,0.06); }
+    .corner-br { bottom: clamp(24px,4vw,48px); right: clamp(24px,4vw,48px); border-bottom: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.06); }
+
+    .status {
+      position: fixed;
+      top: clamp(24px,4vw,48px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fade-in 1s ease 2s forwards;
+    }
+    .status-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+      animation: pulse-dot 3s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+    .status-text {
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.15);
+    }
+
+    .scroll-line {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 1px; height: 0;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.15));
+      z-index: 10;
+      animation: line-grow 1.5s cubic-bezier(0.16, 1, 0.3, 1) 1.8s forwards;
+    }
+    @keyframes line-grow { to { height: 48px; } }
+
+    .content {
+      position: fixed; inset: 0; z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(24px, 4vw, 48px);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      opacity: 0;
+      animation: fade-slide-down 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+    }
+    .logo {
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .time {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 40px;
+    }
+
+    .name-block {
+      opacity: 0;
+      animation: fade-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
+    }
+    .name {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 400;
+      font-style: italic;
+      line-height: 0.9;
+      color: var(--text-bright);
+      letter-spacing: -0.02em;
+    }
+    .name span { display: block; }
+    .name .last {
+      margin-left: 0.15em;
+      color: rgba(255,255,255,0.5);
+    }
+    .role {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-top: 16px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      opacity: 0;
+      animation: fade-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.1s forwards;
+    }
+    .nav-label {
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .nav a {
+      pointer-events: auto;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: lowercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 6px 0;
+      position: relative;
+      transition: color 0.4s ease;
+    }
+    .nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 0; right: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.3);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav a:hover { color: var(--text-bright); }
+    .nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+
+    .loader {
+      position: fixed; inset: 0; z-index: 100;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+    .loader.hidden { opacity: 0; visibility: hidden; }
+    .loader-bar {
+      width: 40px; height: 1px;
+      background: rgba(255,255,255,0.08);
+      position: relative; overflow: hidden;
+    }
+    .loader-bar::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.3);
+      animation: loader-sweep 1.2s ease-in-out infinite;
+    }
+    @keyframes loader-sweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    @keyframes fade-slide-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fade-slide-down {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .bottom { flex-direction: column; align-items: flex-start; gap: 24px; }
+      .nav { align-items: flex-start; }
+      .name { font-size: clamp(40px, 12vw, 64px); }
+      .corner { display: none; }
+      .status { display: none; }
+    }
+    @media (max-width: 420px) {
+      .content { padding: 20px; }
+      .name { font-size: 38px; }
+    }
   </style>
 </head>
 <body>
-  <h1>cwu</h1>
-  <p class="tagline">coming soon</p>
+  <div class="loader" id="loader"><div class="loader-bar"></div></div>
+  <div class="spline-bg" id="spline-bg"><canvas id="spline-canvas"></canvas></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="status"><div class="status-dot"></div><span class="status-text">available</span></div>
+  <div class="scroll-line"></div>
+  <div class="content">
+    <div class="top-bar">
+      <div class="logo">cwu.to</div>
+      <div class="time" id="clock"></div>
+    </div>
+    <div class="bottom">
+      <div class="name-block">
+        <h1 class="name">
+          <span>charlie</span>
+          <span class="last">wu</span>
+        </h1>
+        <p class="role">creative developer</p>
+      </div>
+      <nav class="nav">
+        <span class="nav-label">projects</span>
+        <a href="/bev18/">bev18</a>
+      </nav>
+    </div>
+  </div>
+  <script type="module">
+    import { Application } from 'https://unpkg.com/@splinetool/runtime/build/runtime.js';
+    const canvas = document.getElementById('spline-canvas');
+    const splineBg = document.getElementById('spline-bg');
+    const loader = document.getElementById('loader');
+    const app = new Application(canvas);
+    app.pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+    app.load('https://prod.spline.design/cleRDuTyn2s7K9NE/scene.splinecode')
+      .then(() => { loader.classList.add('hidden'); splineBg.classList.add('loaded'); })
+      .catch(() => { loader.classList.add('hidden'); });
+    const clockEl = document.getElementById('clock');
+    const updateClock = () => {
+      const now = new Date();
+      const h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const ampm = h >= 12 ? 'pm' : 'am';
+      clockEl.textContent = (h % 12 || 12) + ':' + m + ' ' + ampm;
+    };
+    updateClock();
+    setInterval(updateClock, 30000);
+  </script>
 </body>
 </html>
