@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Cormorant+Garamond:ital,wght@0,600;1,400;1,500&display=swap" rel="stylesheet" />
+    <link rel="preload" href="https://unpkg.com/@splinetool/runtime/build/runtime.js" as="script" crossorigin>
+    <link rel="prefetch" href="https://prod.spline.design/SVygeioOYpAys4mn/scene.splinecode">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Cormorant+Garamond:ital,wght@0,600;1,400;1,500&display=swap" as="style">
     <style>
       /* ============================================
          Beverly's 18th Birthday — cwu.to/bev18
@@ -43,7 +46,7 @@
       @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}100%{transform:translateX(0)}}
       .unlock-button{border-radius:999px;border:1px solid rgba(255,255,255,0.45);background:transparent;padding:9px 34px;text-transform:lowercase;letter-spacing:0.22em;font-size:11px;color:rgba(255,255,255,0.85);cursor:pointer;transition:border-color 0.3s,box-shadow 0.3s,background-color 0.3s,transform 0.3s,color 0.3s}
       .unlock-button:hover{border-color:rgba(255,255,255,0.9);color:#fff;box-shadow:0 0 20px rgba(244,167,185,0.5),0 0 16px rgba(255,255,255,0.2);background-color:rgba(255,255,255,0.04);transform:translateY(-1px)}
-      .petal{position:absolute;top:-10vh;left:0;animation-name:petal-fall;animation-timing-function:linear;animation-iteration-count:infinite}
+      .petal{position:absolute;top:-10vh;left:0;animation-name:petal-fall;animation-timing-function:linear;animation-iteration-count:infinite;will-change:transform,top}
       .petal .petal-svg{width:100%;height:100%;display:block}
       .petal path{filter:drop-shadow(0 4px 6px rgba(0,0,0,0.35))}
       .petal.pink path{fill:url(#petalPink)}.petal.blush path{fill:url(#petalBlush)}
@@ -100,7 +103,7 @@
       .all-found-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.9);font-family:"Cormorant Garamond",serif;font-style:italic;font-size:28px;color:rgba(255,255,255,0.95);text-shadow:0 2px 20px rgba(244,167,185,0.6);letter-spacing:0.12em;text-transform:lowercase;z-index:450;opacity:0;pointer-events:none;transition:opacity 0.6s ease,transform 0.6s ease}
       .all-found-toast.visible{opacity:1;transform:translate(-50%,-50%) scale(1)}
       .particles-layer{position:fixed;inset:0;pointer-events:none;z-index:5}
-      .particle{position:absolute;border-radius:50%;background:rgba(255,255,255,0.6);opacity:0;animation:particle-drift var(--dur,12s) ease-in-out var(--del,0s) infinite alternate;transition:opacity 2s}
+      .particle{position:absolute;border-radius:50%;background:rgba(255,255,255,0.6);opacity:0;animation:particle-drift var(--dur,12s) ease-in-out var(--del,0s) infinite alternate;transition:opacity 2s;will-change:transform,opacity}
       .particle.visible{opacity:var(--op,0.25)}
       @keyframes particle-drift{from{transform:translate(0,0)}to{transform:translate(var(--dx,10px),var(--dy,10px))}}
       .envelope-trigger{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity 1.2s;background:none;border:none;padding:8px}
@@ -135,6 +138,7 @@
       .polaroid:hover{transform:translateY(-8px) rotate(0deg)!important;box-shadow:0 12px 40px rgba(26,47,82,0.2)}
       .polaroid-img{width:100%;height:180px;object-fit:cover;background:#f5d5e0;display:block}
       .polaroid-caption{height:40px;display:flex;align-items:center;justify-content:center;font-family:'Caveat',cursive;font-size:15px;color:#1a2f52}
+      .gallery-section .polaroid{content-visibility:auto}
       @media(max-width:600px){.landing-root{padding:16px}.prompt{font-size:22px;letter-spacing:0.18em}.drum{width:64px;height:132px}.drum.drum-year{width:80px}.drum-item{font-size:18px;height:44px}.drum-item.selected{font-size:22px}.drum-highlight{top:44px;height:44px}.drum-sep{font-size:22px}.center-glow{width:min(360px,85vw);height:min(360px,85vw)}.unlock-button{padding-inline:28px;font-size:10px}}
       @media(max-width:768px){.guess-card{padding:28px 24px;max-width:calc(100% - 32px)}.letter-modal{width:calc(100% - 32px)}.letter-modal-photo{height:180px}.letter-modal-body{padding:20px 24px 28px}.gallery-section{padding:40px 16px 60px}.gallery-title{font-size:30px}.gallery-grid{gap:16px}.polaroid{width:calc(50% - 12px)}.envelope-trigger{bottom:60px}}
       @media(max-width:420px){.polaroid{width:100%;max-width:240px}}
@@ -216,7 +220,7 @@ Happy birthday, Bev. I love you.</p>
 
       const petalsContainer=document.getElementById('petals'),landingRoot=document.getElementById('landing'),form=document.getElementById('birthday-form'),drumsRow=document.getElementById('drums-row');
       const PETAL_PATH='M 50 0 C 88 0 100 15 97 48 C 94 78 90 98 50 108 C 10 98 6 78 3 48 C 0 15 12 0 50 0 Z';
-      const createPetals=()=>{[{cls:'petal-back',count:10,sMin:8,sMax:12,fMin:12,fMax:16},{cls:'petal-mid',count:10,sMin:15,sMax:22,fMin:8,fMax:12},{cls:'petal-front',count:12,sMin:25,sMax:35,fMin:5,fMax:8}].forEach(c=>{for(let i=0;i<c.count;i++){const p=document.createElement('div'),sz=c.sMin+Math.random()*(c.sMax-c.sMin),dur=c.fMin+Math.random()*(c.fMax-c.fMin);p.className='petal '+c.cls+' '+(Math.random()<0.6?'pink':'blush');p.style.width=sz+'px';p.style.height=(sz*(1.2+Math.random()*0.4)).toFixed(1)+'px';p.style.left=(Math.random()*100)+'vw';p.style.animationDuration=dur+'s';p.style.animationDelay=(-Math.random()*dur)+'s';p.style.setProperty('--sway-amp',(10+Math.random()*20).toFixed(1)+'px');p.style.setProperty('--initial-rotation',(Math.random()*360).toFixed(1)+'deg');p.innerHTML='<svg viewBox="0 0 100 115" class="petal-svg" preserveAspectRatio="xMidYMid meet"><path d="'+PETAL_PATH+'"/></svg>';petalsContainer.appendChild(p)}})};
+      const isMob=window.innerWidth<=768;const createPetals=()=>{[{cls:'petal-back',count:isMob?6:10,sMin:8,sMax:12,fMin:12,fMax:16},{cls:'petal-mid',count:isMob?6:10,sMin:15,sMax:22,fMin:8,fMax:12},{cls:'petal-front',count:isMob?8:12,sMin:25,sMax:35,fMin:5,fMax:8}].forEach(c=>{for(let i=0;i<c.count;i++){const p=document.createElement('div'),sz=c.sMin+Math.random()*(c.sMax-c.sMin),dur=c.fMin+Math.random()*(c.fMax-c.fMin);p.className='petal '+c.cls+' '+(Math.random()<0.6?'pink':'blush');p.style.width=sz+'px';p.style.height=(sz*(1.2+Math.random()*0.4)).toFixed(1)+'px';p.style.left=(Math.random()*100)+'vw';p.style.animationDuration=dur+'s';p.style.animationDelay=(-Math.random()*dur)+'s';p.style.setProperty('--sway-amp',(10+Math.random()*20).toFixed(1)+'px');p.style.setProperty('--initial-rotation',(Math.random()*360).toFixed(1)+'deg');p.innerHTML='<svg viewBox="0 0 100 115" class="petal-svg" preserveAspectRatio="xMidYMid meet"><path d="'+PETAL_PATH+'"/></svg>';petalsContainer.appendChild(p)}})};
 
       const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       const DAYS=Array.from({length:31},(_,i)=>String(i+1).padStart(2,'0'));
@@ -278,7 +282,7 @@ Happy birthday, Bev. I love you.</p>
       /* ===== GALLERY ===== */
       const GALLERY_DATA=[{src:'assets/images/gallery_1.jpg',caption:'a memory'},{src:'assets/images/gallery_2.jpg',caption:'us'},{src:'assets/images/gallery_3.jpg',caption:'this day'},{src:'assets/images/gallery_4.jpg',caption:'always'},{src:'assets/images/gallery_5.jpg',caption:'forever'}];
       const galleryGrid=document.getElementById('gallery-grid');
-      GALLERY_DATA.forEach((item,i)=>{const pol=document.createElement('div');pol.className='polaroid';pol.style.setProperty('--rot',(-3+Math.random()*6).toFixed(1)+'deg');pol.style.transitionDelay=(i*0.1)+'s';const img=document.createElement('img');img.className='polaroid-img';img.src=item.src;img.alt=item.caption;img.onerror=function(){this.style.display='none'};const cap=document.createElement('div');cap.className='polaroid-caption';cap.textContent=item.caption;pol.appendChild(img);pol.appendChild(cap);galleryGrid.appendChild(pol)});
+      GALLERY_DATA.forEach((item,i)=>{const pol=document.createElement('div');pol.className='polaroid';pol.style.setProperty('--rot',(-3+Math.random()*6).toFixed(1)+'deg');pol.style.transitionDelay=(i*0.1)+'s';const img=document.createElement('img');img.className='polaroid-img';img.src=item.src;img.alt=item.caption;img.loading='lazy';img.decoding='async';img.onerror=function(){this.style.display='none'};const cap=document.createElement('div');cap.className='polaroid-caption';cap.textContent=item.caption;pol.appendChild(img);pol.appendChild(cap);galleryGrid.appendChild(pol)});
       const gObs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');gObs.unobserve(e.target)}}),{threshold:0.2});
       galleryGrid.querySelectorAll('.polaroid').forEach(p=>gObs.observe(p));
       createPetals();
@@ -295,8 +299,10 @@ Happy birthday, Bev. I love you.</p>
       async function loadSpline() {
         console.log('[Spline] Loading...');
         const app = new Application(canvas);
+        app.pixelRatio = Math.min(window.devicePixelRatio, 1.5);
         await app.load('https://prod.spline.design/SVygeioOYpAys4mn/scene.splinecode');
         console.log('[Spline] Loaded!');
+        if(window.innerWidth<=768){try{app.pixelRatio=1}catch(e){}}
         const loader=document.getElementById('spline-loader');if(loader)loader.style.display='none';
 
         const letterContent = {
