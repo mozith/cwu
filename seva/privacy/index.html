@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>seva · privacy</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #050505; --text: rgba(255,255,255,0.85); --dim: rgba(255,255,255,0.45); --rule: rgba(255,255,255,0.12); }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; font-weight: 300;
+           font-size: 14px; line-height: 1.75; padding: 12vh 24px 16vh; }
+    main { max-width: 620px; margin: 0 auto; }
+    h1 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 44px; line-height: 1.1; margin-bottom: 8px; }
+    h2 { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 24px; margin: 40px 0 8px; }
+    p, li { color: var(--text); }
+    .sub { color: var(--dim); margin-bottom: 40px; }
+    ul { padding-left: 18px; }
+    li { margin: 4px 0; }
+    a { color: var(--text); text-underline-offset: 3px; text-decoration-color: var(--dim); }
+    footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--dim); font-size: 12px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>privacy</h1>
+  <p class="sub">for seva, a personal assistant used only by its maker. last updated 19 october 2026.</p>
+
+  <h2>what it accesses</h2>
+  <ul>
+    <li><strong>reading:</strong> my google calendars, so it knows when i'm busy.</li>
+    <li><strong>writing:</strong> only a separate calendar it creates for itself, called "seva plan". google's
+    permissions don't let it change any other event.</li>
+    <li>it doesn't access email, contacts, files, or anyone else's account.</li>
+  </ul>
+
+  <h2>where the information goes</h2>
+  <ul>
+    <li>seva runs on my own computer. its records stay there in a local database.</li>
+    <li>the google sign-in is kept in my computer's keychain.</li>
+    <li>seva's messages to me go through telegram.</li>
+    <li>when i chat with it, the text and the plan it needs to reply (including free/busy times, not other
+    people's event details) are sent to anthropic's claude to write the reply.</li>
+    <li>nothing is sold, shared for advertising, or used to build profiles.</li>
+  </ul>
+  <p>seva's use of information received from google apis follows the
+  <a href="https://developers.google.com/terms/api-services-user-data-policy">google api services user data policy</a>,
+  including the limited use requirements.</p>
+
+  <h2>keeping or removing it</h2>
+  <ul>
+    <li>access can be removed at any time at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+    <li>deleting the "seva plan" calendar removes everything seva has written.</li>
+    <li>the local records are deleted when seva is uninstalled.</li>
+  </ul>
+
+  <h2>contact</h2>
+  <p>questions: <a href="mailto:chxrlie.wu@gmail.com">chxrlie.wu@gmail.com</a></p>
+  <footer>seva · a personal project by charlie wu · <a href="/">cwu.to</a></footer>
+</main>
+</body>
+</html>
